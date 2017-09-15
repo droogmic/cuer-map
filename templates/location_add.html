@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<button onclick="getLocation()">Reload location</button>
+
+<form action="{{ url_for('location_add') }}"  method="post">
+    <label for="dt">Datetime:</label><br>
+    <input id="dt" type="datetime-local" name="datetime" value="">
+    <br>
+    <label for="lat">Latitude:</label><br>
+    <input id="lat" type="text" name="latitude" value="">
+    <br>
+    <label for="lng">Longitude:</label><br>
+    <input id="lng" type="text" name="longitude" value="">
+    <br><br>
+    <input type="submit" value="Submit">
+</form> 
+
+<p id="status"></p>
+
+<script>
+var x = document.getElementById("status");
+var lat_input = document.getElementById("lat");
+var lng_input = document.getElementById("lng");
+
+Date.prototype.toDateInputValue = (function() {
+    var local = new Date(this);
+    local.setMinutes(this.getMinutes() - this.getTimezoneOffset());
+    return local.toJSON().slice(0,16);
+});
+document.getElementById('dt').value = new Date().toDateInputValue();
+
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition);
+    } else { 
+        x.innerHTML = "Geolocation is not supported by this browser.";
+    }
+}
+
+function showPosition(position) {
+    x.innerHTML = "Location found:<br>Latitude: " + position.coords.latitude + 
+    "<br>Longitude: " + position.coords.longitude + 
+    "<br>Accuracy: " + position.coords.accuracy + "m";
+    lat_input.value = position.coords.latitude;
+    lng_input.value = position.coords.longitude;
+}
+</script>
+
+</body>
+</html>

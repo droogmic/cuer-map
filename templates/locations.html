@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table {
+    background-color: #fff;
+}
+th, td {
+    padding: 15px;
+    text-align: left;
+}
+th {
+    background-color: #222;
+    color: white;
+}
+tr:nth-child(even) {
+    background-color: #eee
+}
+tr:hover {
+    background-color: #ddd
+}
+</style>
+</head>
+<body>
+<p><a href="{{ url_for('index') }}">Map</a> - <a href="{{ url_for('location_add') }}">Add location</a></p>
+<table style="width:100%">
+    <tr>
+        <th>Latitude</th>
+        <th>Longitude</th> 
+        <th>Datetime</th>
+        <th></th>
+    </tr>
+    {% for location in locations %}
+    <tr>
+        {% for row in location[1:] %}
+        <td>{{ row }}</td>
+        {% endfor %}
+        <td>
+            <form method=post action="{{ url_for('location_delete', id=location[0]) }}">
+                <input type="submit" value="Delete entry" />
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<script>
+
+</script>
+
+</body>
+</html>
