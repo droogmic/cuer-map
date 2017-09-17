@@ -29,23 +29,25 @@
         {name: 'Port Augusta', loc:{lat: -32.508634, lng: 137.797072}},
     ];
     var locations = {{ locations|safe }};
+
     var CSMarkers;
     var locationMarkers;
     // var updateMarkers;
+    
     function initMap() {
         var map = new google.maps.Map(document.getElementById('map'), {
             zoom: 5,
             center: map_center
         });
-        
+
         drawRoute(map);
-        
+
         CSMarkers = dropCSMarkers(map);
         locationMarkers = dropLocationMarkers(map);
         // updateMarkers = dropUpdateMarkers(map);
-        
+
     }
-    
+
     function drawRoute(map) {
         var directionsDisplay = new google.maps.DirectionsRenderer({
             suppressMarkers: true,
@@ -101,7 +103,7 @@
         });
         return marker;
     }
-    
+
     function dropLocationMarkers(map) {
         var poly = new google.maps.Polyline({
             strokeColor: '#f00',
@@ -190,7 +192,7 @@
         });
         return marker;
     }
-      
+
     </script>
     <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBKMi9WI9oyR8L3gaUUbuo5oye3YMbHxzs&callback=initMap">
