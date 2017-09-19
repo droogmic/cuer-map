@@ -33,19 +33,16 @@
     var CSMarkers;
     var locationMarkers;
     // var updateMarkers;
-    
+
     function initMap() {
         var map = new google.maps.Map(document.getElementById('map'), {
             zoom: 5,
             center: map_center
         });
-
         drawRoute(map);
-
         CSMarkers = dropCSMarkers(map);
         locationMarkers = dropLocationMarkers(map);
         // updateMarkers = dropUpdateMarkers(map);
-
     }
 
     function drawRoute(map) {
@@ -88,7 +85,7 @@
         var marker = new google.maps.Marker({
             position: pos,
             icon: {
-                url: "http://maps.google.com/mapfiles/kml/paddle/wht-blank.png",
+                url: "https://maps.google.com/mapfiles/kml/paddle/wht-blank.png",
                 scaledSize: {width: size, height: size},
                 labelOrigin: new google.maps.Point(0.5*size, size+10),
             },
@@ -176,7 +173,7 @@
         var marker = new google.maps.Marker({
             position: pos,
             icon: {
-                url: "http://maps.google.com/mapfiles/kml/paddle/wht-blank.png",
+                url: "https://maps.google.com/mapfiles/kml/paddle/wht-blank.png",
                 scaledSize: {width: 40, height: 40},
                 labelOrigin: new google.maps.Point(20, 13),
             },
