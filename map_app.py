@@ -38,6 +38,7 @@ def setup():
             "Longitude" REAL
         )
     ''')
+    get_db().commit()
 
 @app.route('/')
 def index():
@@ -48,27 +49,34 @@ def map():
     c = get_db().cursor()
     c.execute('SELECT * FROM Location')
     sql_locations = c.fetchall()
-    sql_locations = sorted(sql_locations, key=(lambda el: el[3]))
+    sql_locations = sorted(sql_locations, key=(lambda el: el[1]))
     locations = [{
         'dt': loc[1],
         'lat': loc[2],
         'lng': loc[3],
     } for loc in sql_locations]
-    return render_template('map.html', locations=locations)
+    last_update = locations[-1]['dt']
+    return render_template(
+        'map.html',
+        locations=locations,
+        last_update=last_update
+    )
 
-def add_latlong(latitude, longitude, dt_string):
+def add_latlong(dt_string, latitude, longitude):
     c = get_db().cursor()
     latitude, longitude = float(latitude), float(longitude)
     c.execute(
         "INSERT INTO Location(DT, Latitude, Longitude) VALUES (?, ?, ?)",
         [dt_string, latitude, longitude]
     )
+    get_db().commit()
+    print("add_latlong", dt_string, latitude, longitude)
 
 def sms_latlong(latitude, longitude):
     from datetime import datetime as dt
-    ts = dt.now().isoformat()[:16]
+    dt_str = dt.now().isoformat()[:16]
     try:
-        add_latlong(latitude, longitude, ts)
+        add_latlong(dt_str, latitude, longitude)
     except ValueError:
         resp = MessagingResponse()
         resp.message("Received ({}, {})\nInvalid input.".format(latitude, longitude))
@@ -132,15 +140,27 @@ def location_add():
         # print(request.form['datetime'])
         try:
             add_latlong(
+                request.form['datetime'],
                 request.form['latitude'],
                 request.form['longitude'],
-                request.form['datetime']
             )
         except ValueError:
             return "Invalid latitude and longitude"
         return redirect(url_for('locations'))
     else:
         return render_template('location_add.html')
+
+@app.route('/locations/generate/')
+def location_generate():
+    c = get_db().cursor()
+
+    c.execute("INSERT INTO Location(DT, Latitude, Longitude) VALUES (?, ?, ?)", ['2017-08-01T08:00', -12.436298, 130.930217])
+    c.execute("INSERT INTO Location(DT, Latitude, Longitude) VALUES (?, ?, ?)", ['2017-08-01T10:00', -13.396281, 131.270268])
+    c.execute("INSERT INTO Location(DT, Latitude, Longitude) VALUES (?, ?, ?)", ['2017-08-01T13:00', -15.534933, 133.206675])
+    c.execute("INSERT INTO Location(DT, Latitude, Longitude) VALUES (?, ?, ?)", ['2017-08-01T17:00', -17.199167, 133.470352])
+
+    get_db().commit()
+    return redirect(url_for('locations'))
 
 if __name__ == "__main__":
     app.run(debug=True)

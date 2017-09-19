@@ -25,9 +25,9 @@ tr:hover {
 <p><a href="{{ url_for('index') }}">Map</a> - <a href="{{ url_for('location_add') }}">Add location</a></p>
 <table style="width:100%">
     <tr>
-        <th>Latitude</th>
-        <th>Longitude</th> 
         <th>Datetime</th>
+        <th>Latitude</th>
+        <th>Longitude</th>
         <th></th>
     </tr>
     {% for location in locations %}
