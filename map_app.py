@@ -4,6 +4,13 @@ from twilio.twiml.messaging_response import MessagingResponse
 
 # INSERT INTO locations(latitude, longitude, dt) VALUES (-26.004363, 133.195111,  '2017-08-01 10:00:00')
 
+# CREATE TABLE "locations"  (
+#   "id" INTEGER NOT NULL PRIMARY KEY,
+#   "latitude" REAL,
+#   "longitude" REAL,
+#   "dt" DATETIME
+# )
+
 app = Flask(__name__)
 app.config['DEBUG'] = True
 DATABASE = 'map.db'
@@ -20,28 +27,43 @@ def close_connection(exception):
     if db is not None:
         db.close()
 
+@app.before_first_request
+def setup():
+    c = get_db().cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS "Location" (
+            "LocationID" INTEGER NOT NULL PRIMARY KEY,
+            "DT" DATETIME,
+            "Latitude" REAL,
+            "Longitude" REAL
+        )
+    ''')
+
 @app.route('/')
 def index():
     return render_template('index.html')
-    
+
 @app.route('/map/')
 def map():
     c = get_db().cursor()
-    c.execute('SELECT * FROM locations')
+    c.execute('SELECT * FROM Location')
     sql_locations = c.fetchall()
     sql_locations = sorted(sql_locations, key=(lambda el: el[3]))
     locations = [{
-        'lat': loc[1],
-        'lng': loc[2],
-        'dt': loc[3],
+        'dt': loc[1],
+        'lat': loc[2],
+        'lng': loc[3],
     } for loc in sql_locations]
     return render_template('map.html', locations=locations)
 
 def add_latlong(latitude, longitude, dt_string):
     c = get_db().cursor()
     latitude, longitude = float(latitude), float(longitude)
-    c.execute("INSERT INTO locations(latitude, longitude, dt) VALUES (?, ?, ?)", [latitude, longitude, dt_string])
-    
+    c.execute(
+        "INSERT INTO Location(DT, Latitude, Longitude) VALUES (?, ?, ?)",
+        [dt_string, latitude, longitude]
+    )
+
 def sms_latlong(latitude, longitude):
     from datetime import datetime as dt
     ts = dt.now().isoformat()[:16]
@@ -55,21 +77,21 @@ def sms_latlong(latitude, longitude):
         resp = MessagingResponse()
         resp.message("Received: {}\nSuccessfully processed.".format(body))
         #return str(resp)
-    
+
 @app.route("/sms/", methods=['GET', 'POST'])
 def sms_reply():
     """Parse incoming SMS"""
     print(request.method)
-    
+
     if request.method == 'POST':
         body = request.values.get('Body', None)
         print(body)
         latitude, longitude = body.split(',')
         print(latitude, longitude)
-        sms_latlong(latitude, longitude)  
+        sms_latlong(latitude, longitude)
     else:
         return "Used by Twilio SMS service"
-        
+
 @app.route("/sms/<latitude>/<longitude>/", methods=['GET'])
 def sms_test_reply(latitude, longitude):
     """Test parsing incoming SMS"""
@@ -77,18 +99,18 @@ def sms_test_reply(latitude, longitude):
     if result:
         return result
     return "Test fired succesfully"
-    
+
 @app.route('/locations/')
 def locations():
     c = get_db().cursor()
-    c.execute('SELECT * FROM locations')
+    c.execute('SELECT * FROM Location')
     sql_locations = c.fetchall()
     # locations_str = ["<tr> <td>{}</td> <td>{}</td> <td>{}</td> </tr>".format(*loc[1:]) for loc in sql_locations]
     # return """
     # <table style="width:100%">
         # <tr>
             # <th>Latitude</th>
-            # <th>Longitude</th> 
+            # <th>Longitude</th>
             # <th>Datetime</th>
         # </tr>
         # {}
@@ -99,22 +121,26 @@ def locations():
 @app.route('/locations/<int:id>/delete/', methods=['POST'])
 def location_delete(id):
     c = get_db().cursor()
-    c.execute("DELETE FROM locations WHERE id=?", [id])
+    c.execute("DELETE FROM Location WHERE LocationID=?", [id])
     get_db().commit()
     return redirect(url_for('locations'))
-    
+
 @app.route('/locations/add/', methods=['GET', 'POST'])
 def location_add():
     print("locations_add")
     if request.method == 'POST':
         # print(request.form['datetime'])
         try:
-            add_latlong(request.form['latitude'], request.form['longitude'], request.form['datetime'])
+            add_latlong(
+                request.form['latitude'],
+                request.form['longitude'],
+                request.form['datetime']
+            )
         except ValueError:
             return "Invalid latitude and longitude"
         return redirect(url_for('locations'))
     else:
         return render_template('location_add.html')
-        
+
 if __name__ == "__main__":
     app.run(debug=True)
