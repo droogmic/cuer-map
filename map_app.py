@@ -2,15 +2,6 @@ import sqlite3
 from flask import Flask, render_template, g, request, redirect, url_for
 from twilio.twiml.messaging_response import MessagingResponse
 
-# INSERT INTO locations(latitude, longitude, dt) VALUES (-26.004363, 133.195111,  '2017-08-01 10:00:00')
-
-# CREATE TABLE "locations"  (
-#   "id" INTEGER NOT NULL PRIMARY KEY,
-#   "latitude" REAL,
-#   "longitude" REAL,
-#   "dt" DATETIME
-# )
-
 app = Flask(__name__)
 app.config['DEBUG'] = True
 DATABASE = 'map.db'
@@ -35,7 +26,8 @@ def setup():
             "LocationID" INTEGER NOT NULL PRIMARY KEY,
             "DT" DATETIME,
             "Latitude" REAL,
-            "Longitude" REAL
+            "Longitude" REAL,
+            "Post" TEXT
         )
     ''')
     get_db().commit()
@@ -54,20 +46,27 @@ def map():
         'dt': loc[1],
         'lat': loc[2],
         'lng': loc[3],
+        'txt': loc[4] if loc[4] else "",
     } for loc in sql_locations]
-    last_update = locations[-1]['dt']
+    if locations:
+        last_update = locations[-1]['dt']
+    else:
+        last_update = "Never"
     return render_template(
         'map.html',
         locations=locations,
         last_update=last_update
     )
 
-def add_latlong(dt_string, latitude, longitude):
+def add_latlong(dt_string, latitude, longitude, post):
     c = get_db().cursor()
     latitude, longitude = float(latitude), float(longitude)
+    post = post.strip()
+    if not post:
+        post = None
     c.execute(
-        "INSERT INTO Location(DT, Latitude, Longitude) VALUES (?, ?, ?)",
-        [dt_string, latitude, longitude]
+        "INSERT INTO Location(DT, Latitude, Longitude, Post) VALUES (?, ?, ?, ?)",
+        [dt_string, latitude, longitude, post]
     )
     get_db().commit()
     print("add_latlong", dt_string, latitude, longitude)
@@ -94,7 +93,7 @@ def sms_reply():
     if request.method == 'POST':
         body = request.values.get('Body', None)
         print(body)
-        latitude, longitude = body.split(',')
+        latitude, longitude, *post = body.split(',')
         print(latitude, longitude)
         sms_latlong(latitude, longitude)
     else:
@@ -143,6 +142,7 @@ def location_add():
                 request.form['datetime'],
                 request.form['latitude'],
                 request.form['longitude'],
+                request.form['text'],
             )
         except ValueError:
             return "Invalid latitude and longitude"

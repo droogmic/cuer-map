@@ -21,14 +21,16 @@
   <script>
     var locations = {{ locations|safe }};
   </script>
-  <script async defer src={{ url_for('static', filename='map.js') }}></script>
+  <script async src={{ url_for('static', filename='map.js') }}></script>
   <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBKMi9WI9oyR8L3gaUUbuo5oye3YMbHxzs&callback=initMap"></script>
   <body>
-    <div id="map"></div>
-    <div id="legend">
-      <p>Map last updated at: {{ last_update }} ACST</p>
-      <p>CS - Control Stop - A regulation enforced 30 minute stop where the drivers swap and the car refuels</p>
-      <p>All times in ACST</p>
+    <div>
+      <div id="map"></div>
+      <div id="legend">
+        <p>Map last updated at: {{ last_update }} ACST</p>
+        <p>CS - Control Stop - A regulation enforced 30 minute stop where the drivers swap and the solar car is topped up with petrol.</p>
+        <p>All times in ACST</p>
+      </div>
     </div>
   </body>
 </html>

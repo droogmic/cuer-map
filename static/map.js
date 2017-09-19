@@ -13,7 +13,6 @@ var control_stops = [
 
 var CSMarkers;
 var locationMarkers;
-// var updateMarkers;
 
 function initMap() {
     var map = new google.maps.Map(document.getElementById('map'), {
@@ -47,41 +46,6 @@ function drawRoute(map) {
     });
 }
 
-function dropUpdateMarkers(map) {
-    var markers = [];
-    var addMarker = (function(pos, idx) {
-        return (function () {
-            markers.push(addUpdateMarkerMethod(map, pos, idx));
-        });
-    });
-    locations.forEach(function(element, idx) {
-        setTimeout(addMarker({lat: parseFloat(element.lat), lng: parseFloat(element.lng)}, idx), idx*100);
-    });
-    return markers;
-}
-function addUpdateMarkerMethod(map, pos, idx) {
-    let size = 50/(idx+1);
-    let opacity = 1/(idx/5+1);
-    let label_text = (idx==0)?"Latest Position":" ";
-    var marker = new google.maps.Marker({
-        position: pos,
-        icon: {
-            url: "https://maps.google.com/mapfiles/kml/paddle/wht-blank.png",
-            scaledSize: {width: size, height: size},
-            labelOrigin: new google.maps.Point(0.5*size, size+10),
-        },
-        opacity: opacity,
-        label: {
-            text: label_text,
-            fontWeight: 'bold',
-            fontSize: 'large',
-        },
-        map: map,
-        animation: google.maps.Animation.DROP,
-    });
-    return marker;
-}
-
 function dropLocationMarkers(map) {
     var poly = new google.maps.Polyline({
         strokeColor: '#f00',
@@ -89,19 +53,19 @@ function dropLocationMarkers(map) {
     });
     poly.setMap(map);
     var markers = [];
-    var addMarker = (function(pos, dt, last) {
+    var addMarker = (function(pos, dt, text, last) {
         return (function () {
             console.log(dt);
             var path = poly.getPath();
             path.push(new google.maps.LatLng(pos.lat, pos.lng));
-            markers.push(addLocationMarkerMethod(map, pos, dt, last));
+            markers.push(addLocationMarkerMethod(map, pos, dt, text, last));
         });
     });
     locations.forEach(function(element, idx) {
         if (idx === locations.length - 1){
-            setTimeout(addMarker({lat: parseFloat(element.lat), lng: parseFloat(element.lng)}, element.dt, true), idx*1000);
+            setTimeout(addMarker({lat: parseFloat(element.lat), lng: parseFloat(element.lng)}, element.dt, element.txt, true), idx*1000);
         } else {
-            setTimeout(addMarker({lat: parseFloat(element.lat), lng: parseFloat(element.lng)}, element.dt, false), idx*1000);
+            setTimeout(addMarker({lat: parseFloat(element.lat), lng: parseFloat(element.lng)}, element.dt, element.txt, false), idx*1000);
         }
     });
     return {
@@ -109,14 +73,19 @@ function dropLocationMarkers(map) {
         poly: poly,
     }
 }
-function addLocationMarkerMethod(map, pos, dt, last) {
+function addLocationMarkerMethod(map, pos, dt, text, last) {
+    var content = '<div id="content">' + '<i class="material-icons">schedule</i>' + '<span>' + dt + '</span>';
+    if (text !== '') {
+        content += '<br>' + '<p>' + text + '<p>';
+    }
+    content += '</div>';
     var infowindow = new google.maps.InfoWindow({
-        content: '<div id="content">' + '<i class="material-icons">schedule</i>' + '<span>' + dt + '</span>' + '</div>',
+        content: content,
     });
     var symbol = {
         path: google.maps.SymbolPath.CIRCLE,
         scale: last?6:4,
-        strokeColor: 'blue',
+        strokeColor: (text!=='')?'blue':'green',
     };
     var marker = new google.maps.Marker({
         position: pos,

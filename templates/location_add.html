@@ -4,7 +4,7 @@
 
 <button onclick="getLocation()">Reload location</button>
 
-<form action="{{ url_for('location_add') }}"  method="post">
+<form id="location_form" action="{{ url_for('location_add') }}"  method="post">
     <label for="dt">Datetime:</label><br>
     <input id="dt" type="datetime-local" name="datetime" value="">
     <br>
@@ -14,8 +14,11 @@
     <label for="lng">Longitude:</label><br>
     <input id="lng" type="text" name="longitude" value="">
     <br><br>
+    <label for="txt">Text:</label><br>
+    <textarea id="txt" name="text" value="" form="location_form"></textarea>
+    <br><br>
     <input type="submit" value="Submit">
-</form> 
+</form>
 
 <p id="status"></p>
 
@@ -34,14 +37,14 @@ document.getElementById('dt').value = new Date().toDateInputValue();
 function getLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(showPosition);
-    } else { 
+    } else {
         x.innerHTML = "Geolocation is not supported by this browser.";
     }
 }
 
 function showPosition(position) {
-    x.innerHTML = "Location found:<br>Latitude: " + position.coords.latitude + 
-    "<br>Longitude: " + position.coords.longitude + 
+    x.innerHTML = "Location found:<br>Latitude: " + position.coords.latitude +
+    "<br>Longitude: " + position.coords.longitude +
     "<br>Accuracy: " + position.coords.accuracy + "m";
     lat_input.value = position.coords.latitude;
     lng_input.value = position.coords.longitude;
