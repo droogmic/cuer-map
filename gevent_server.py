@@ -8,6 +8,6 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--port', action='store', default=5000)
     args = parser.parse_args()
 
-    print("Starting server on port {}".format(args.port))
+    print("Starting server on port {}".format(int(args.port)))
     http_server = WSGIServer(('', args.port), app)
     http_server.serve_forever()
